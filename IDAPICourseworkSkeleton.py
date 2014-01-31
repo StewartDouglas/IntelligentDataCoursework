@@ -18,35 +18,43 @@ def Prior(theData, root, noStates):
     for prob in range(prior.shape[0]):
         prior[prob]/=theData.shape[0]
     return prior
+  
 # Function to compute a CPT with parent node varP and child node varC from the data array
 # it is assumed that the states are designated by consecutive integers starting with 0
 def CPT(theData, varC, varP, noStates):
     cPT = zeros((noStates[varC], noStates[varP]), float )
-    parentCount = zeros(nonStates[varP])
+    parentCount = zeros(noStates[varP])
     for row in range(theData.shape[0]):
         cPT[theData[row][varC]][theData[row][varP]]+=1
-        parentCount[varP]+=1
+        parentCount[theData[row][varP]]+=1
     # Now normalise
-    for col in range(cPT.shape[0]):
-        for row in range(cPT.shape[1]):
+    for row in range(cPT.shape[0]):
+      for col in range(cPT.shape[1]):
+	  if parentCount[col] != 0:
             cPT[row][col]/=parentCount[col]
     return cPT
+  
 # Function to calculate the joint probability table of two variables in the data set
 def JPT(theData, varRow, varCol, noStates):
     jPT = zeros((noStates[varRow], noStates[varCol]), float )
-    for row in range(theData.shape[0])
-        jPT[theData[row][varRow]][[row][varCol]]+=1
+    for row in range(theData.shape[0]):
+        jPT[theData[row][varRow]][theData[row][varCol]]+=1
     for row in range(jPT.shape[0]):
-        for col in range(jPT.shape[0]):
+        for col in range(jPT.shape[1]):
             jPT[row][col]/=theData.shape[0]
     return jPT
 
 # Function to convert a joint probability table to a conditional probability table
 def JPT2CPT(aJPT):
-#Coursework 1 task 4 should be inserted here 
-   
-# coursework 1 taks 4 ends here
-    return aJPT
+  # Calcualte the probably of the column/parent variable for each of its states
+  probVarCol = zeros(aJPT.shape[1])
+  for col in range(aJPT.shape[1]):
+    for row in range(aJPT.shape[0]):
+      probVarCol[col] += aJPT[row][col]
+  for col in range(aJPT.shape[1]):
+    for row in range(aJPT.shape[0]):
+      aJPT[row][col]/=probVarCol[col]
+  return aJPT
 
 #
 # Function to query a naive Bayesian network
@@ -215,9 +223,18 @@ noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("Neurones.txt")
 theData = array(datain)
 AppendString("results.txt","Coursework One Results by sd3112")
 AppendString("results.txt","") #blank line
-AppendString("results.txt","The prior probability of node 0")
+AppendString("results.txt","The prior probability of node 0:")
 prior = Prior(theData, 0, noStates)
 AppendList("results.txt", prior)
+AppendString("results.txt","The conditional probability table:")
+cPT = CPT(theData, 2, 0, noStates)
+AppendArray("results.txt", cPT)
+AppendString("results.txt","The joint probability table:")
+jPT = JPT(theData, 2, 0, noStates)
+AppendArray("results.txt", jPT)
+AppendString("results.txt","The conditional probability table (from joint):")
+newCPT = JPT2CPT(jPT)
+AppendArray("results.txt", newCPT)
 #
 # continue as described
 #
