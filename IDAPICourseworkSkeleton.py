@@ -120,7 +120,7 @@ def DependencyList(depMatrix):
     depList=[]
     for i in range(depMatrix.shape[0]):
         for j in range(depMatrix.shape[1]):
-            if i != j:
+            if i < j:
                 depList.append([depMatrix[i][j],i,j])
     depList2 = sorted(depList, key=lambda dep: dep[0], reverse = True)
     return array(depList2)
@@ -249,7 +249,7 @@ def PrincipalComponents(theData):
 # main program part for Coursework 1
 #
 
-noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("Neurones.txt")
+noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
 AppendString("results.txt","Coursework One Results by sd3112")
 AppendString("results.txt","") #blank line
