@@ -120,7 +120,7 @@ def DependencyList(depMatrix):
     depList=[]
     for i in range(depMatrix.shape[0]):
         for j in range(depMatrix.shape[1]):
-            if i != j:
+            if i < j:
                 depList.append([depMatrix[i][j],i,j])
     depList2 = sorted(depList, key=lambda dep: dep[0], reverse = True)
     return array(depList2)
@@ -249,43 +249,47 @@ def PrincipalComponents(theData):
 # main program part for Coursework 1
 #
 
-noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("Neurones.txt")
+noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
-AppendString("results.txt","Coursework One Results by sd3112")
-AppendString("results.txt","") #blank line
-AppendString("results.txt","The prior probability of node 0:")
-prior = Prior(theData, 0, noStates)
-AppendList("results.txt", prior)
-AppendString("results.txt","The conditional probability matrix P(2|0):")
-cPT = CPT(theData, 2, 0, noStates)
-AppendArray("results.txt", cPT)
-AppendString("results.txt","The joint probability matrix P(2&0):")
-jPT = JPT(theData, 2, 0, noStates)
-AppendArray("results.txt", jPT)
-AppendString("results.txt","The conditional probability matrx P(2|0) calculated from P(2&0):")
-newCPT = JPT2CPT(jPT)
-AppendArray("results.txt", newCPT)
+#AppendString("results.txt","Coursework One Results by sd3112")
+#AppendString("results.txt","") #blank line
+#AppendString("results.txt","The prior probability of node 0:")
+#prior = Prior(theData, 0, noStates)
+#AppendList("results.txt", prior)
+#AppendString("results.txt","The conditional probability matrix P(2|0):")
+#cPT = CPT(theData, 2, 0, noStates)
+#AppendArray("results.txt", cPT)
+#AppendString("results.txt","The joint probability matrix P(2&0):")
+#jPT = JPT(theData, 2, 0, noStates)
+#AppendArray("results.txt", jPT)
+#AppendString("results.txt","The conditional probability matrx P(2|0) calculated from P(2&0):")
+#newCPT = JPT2CPT(jPT)
+#AppendArray("results.txt", newCPT)
 
 # Create the Bayesian network
-naiveBayes = []
-naiveBayes.append(prior)
-for i in range(5):
-    naiveBayes.append(CPT(theData,i+1,0,noStates))
+#naiveBayes = []
+#naiveBayes.append(prior)
+#for i in range(5):
+#    naiveBayes.append(CPT(theData,i+1,0,noStates))
 
-AppendString("results.txt","The results of passing state [4,0,0,0,5] into the naive network:")
-posteriorProbs1 = Query([4,0,0,0,5],naiveBayes)
-AppendList("results.txt", posteriorProbs1)
+#AppendString("results.txt","The results of passing state [4,0,0,0,5] into the naive network:")
+#posteriorProbs1 = Query([4,0,0,0,5],naiveBayes)
+#AppendList("results.txt", posteriorProbs1)
 
-AppendString("results.txt","The results of passing state [6,5,2,5,5] into the naive network:")
-posteriorProbs2 = Query([6,5,2,5,5],naiveBayes)
-AppendList("results.txt", posteriorProbs2)
+#AppendString("results.txt","The results of passing state [6,5,2,5,5] into the naive network:")
+#posteriorProbs2 = Query([6,5,2,5,5],naiveBayes)
+#AppendList("results.txt", posteriorProbs2)
 
 
 # *********** Coursework 2 *****************
 
-AppendString("results.txt","*********** Coursework 2 *****************")
-print jPT
-print MutualInformation(jPT)
-print DependencyMatrix(theData, noVariables, noStates)
+AppendString("results.txt","Coursework Two Results by sd3112")
+prior = Prior(theData, 0, noStates)
+jPT = JPT(theData, 2, 0, noStates)
+#print DependencyMatrix(theData, noVariables, noStates)
 dm =  DependencyMatrix(theData, noVariables, noStates)
-print DependencyList(dm)
+AppendString("results.txt","The dependency matrix for the HepatitisC varilabes:")
+AppendArray("results.txt",dm)
+dl = DependencyList(dm)
+AppendString("results.txt","The dependency list for the HepatitisC varilabes:")
+AppendArray("results.txt",dl)
