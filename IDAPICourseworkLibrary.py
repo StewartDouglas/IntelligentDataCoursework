@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import Image
+#import Image
 import glob, os
 import numpy
 # Function to read in data from a file in the format defined by Duncan
@@ -27,9 +27,9 @@ def ReadFile(filename):
 # Function to write an array to a results file
 # the array is assumed to be either of proababilities of dependencies
 def AppendArray(filename, anArray):
-    f = open(filename, 'a')
-    for row in range(anArray.shape[0]):
-        for col in range(anArray.shape[1]):
+    f = open(filename, 'a') # 'a' appends to the file
+    for row in range(anArray.shape[0]): # .shape is a numpy attribute returning the dimensions of an array
+        for col in range(anArray.shape[1]): # so the 0th entry in .shape is the number rows
             f.write( '%6.3f ' % (anArray[row,col]))
         f.write('\n')
     f.write('\n\n')
