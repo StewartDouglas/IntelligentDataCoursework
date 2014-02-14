@@ -128,10 +128,34 @@ def DependencyList(depMatrix):
 # Functions implementing the spanning tree algorithm
 # Coursework 2 task 4
 
+# I use Kruskal's algorithm but to find the maximal spanning tree
+# rather than the more conventional minimal spanning tree. To do this
+# I use the helper functions find() and union().
 def SpanningTreeAlgorithm(depList, noVariables):
     spanningTree = []
-  
+    # Create a dictionary where each node points to itself
+    # (initially each node is isolated)
+    C = {u:u for u in range(noVariables)}
+    for i in range(depList.shape[0]):
+        if find(C,depList[i][1]) != find(C,depList[i][2]): 
+            spanningTree.append(depList[i])
+            #print depList[i]
+            union(C,depList[i][1],depList[i][2])
     return array(spanningTree)
+
+# Get the 'representative' component
+def find(C,n):
+    while C[n] != n:
+        n = C[n]
+    return n;
+
+# Nodes n and m will become part of the same
+# connected component
+def union(C,n,m):
+    n = find(C,n)
+    m = find(C,m)
+    C[n] = m
+
 #
 # End of coursework 2
 #
@@ -284,12 +308,14 @@ theData = array(datain)
 # *********** Coursework 2 *****************
 
 AppendString("results.txt","Coursework Two Results by sd3112")
-prior = Prior(theData, 0, noStates)
 jPT = JPT(theData, 2, 0, noStates)
 #print DependencyMatrix(theData, noVariables, noStates)
 dm =  DependencyMatrix(theData, noVariables, noStates)
-AppendString("results.txt","The dependency matrix for the HepatitisC varilabes:")
+AppendString("results.txt","The dependency matrix for the HepatitisC data set:")
 AppendArray("results.txt",dm)
 dl = DependencyList(dm)
-AppendString("results.txt","The dependency list for the HepatitisC varilabes:")
+AppendString("results.txt","The dependency list for the HepatitisC data set:")
 AppendArray("results.txt",dl)
+mst = SpanningTreeAlgorithm(dl,noVariables)
+AppendString("results.txt","Maximally Weighted Spanning Tree for the HepatitisC data set:")
+AppendArray("results.txt",mst)
