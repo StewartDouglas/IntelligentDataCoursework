@@ -161,12 +161,24 @@ def union(C,n,m):
 #
 # Coursework 3 begins here
 #
-# Function to compute a CPT with multiple parents from he data set
+# Function to compute a CPT with multiple parents from the data set
 # it is assumed that the states are designated by consecutive integers starting with 0
 def CPT_2(theData, child, parent1, parent2, noStates):
-    cPT = zeros([noStates[child],noStates[parent1],noStates[parent2]], float )
+    cPT = zeros([noStates[child],noStates[parent1],noStates[parent2]], float ) # 
 # Coursework 3 task 1 should be inserted here
-   
+    parentCount = zeros([noStates[parent1],noStates[parent2]], float)
+# Need to calculate the probability of the child event for every combination of the 
+# parents events   
+    for row in range(theData.shape[0]):
+        cPT[theData[row][child]][theData[row][parent1]][theData[row][parent2]]+=1
+        parentCount[theData[row][parent1]][theData[row][parent2]]+=1
+    # Now normalise
+    for dim1 in range(cPT.shape[0]):
+      for dim2 in range(cPT.shape[1]):
+        for dim3 in range(cPT.shape[2]):
+            if parentCount[dim2][dim3] != 0:
+                cPT[dim1][dim2][dim3]/=parentCount[dim2][dim3]
+    return cPT
 
 # End of Coursework 3 task 1           
     return cPT
@@ -184,6 +196,11 @@ def ExampleBayesianNetwork(theData, noStates):
     return arcList, cptList
 # Coursework 3 task 2 begins here
 
+def HepCBayesianNetwork():
+    arcList = []
+    cptList = []
+    return arcList, cptList
+
 # end of coursework 3 task 2
 #
 # Function to calculate the MDL size of a Bayesian Network
@@ -191,6 +208,14 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
     mdlSize = 0.0
 # Coursework 3 task 3 begins here
 
+    #
+    for x in range(len(arcList)):
+        res = 1
+        for y in range(arcList[x]):
+            res *= noStates[arcList[y]]-1
+        mdlSize += res
+
+    mdlSize *= log2(noDataPoints)/2
 
 # Coursework 3 task 3 ends here 
     return mdlSize 
@@ -208,14 +233,18 @@ def JointProbability(dataPoint, arcList, cptList):
 def MDLAccuracy(theData, arcList, cptList):
     mdlAccuracy=0
 # Coursework 3 task 5 begins here
-
-
+    # First calculate the likelihood
+    for row in range(theData.shape[0]):
+        mdlAccuracy += JointProbability(theData[row],arcList,cptList)
+    # Second, take the logarithm (base 2)
+    if mdlAccuracy != 0;
+        mdlAccuracy = log2(mdlAccuracy)
 # Coursework 3 task 5 ends here 
     return mdlAccuracy
 #
-# End of coursework 2
+# End of coursework 3
 #
-# Coursework 3 begins here
+# Coursework 4 begins here
 #
 def Mean(theData):
     realData = theData.astype(float)
@@ -275,6 +304,9 @@ def PrincipalComponents(theData):
 
 noVariables, noRoots, noStates, noDataPoints, datain = ReadFile("HepatitisC.txt")
 theData = array(datain)
+
+# *********** Coursework 1 *****************
+
 #AppendString("results.txt","Coursework One Results by sd3112")
 #AppendString("results.txt","") #blank line
 #AppendString("results.txt","The prior probability of node 0:")
@@ -307,15 +339,21 @@ theData = array(datain)
 
 # *********** Coursework 2 *****************
 
-AppendString("results.txt","Coursework Two Results by sd3112")
-jPT = JPT(theData, 2, 0, noStates)
+#AppendString("results.txt","Coursework Two Results by sd3112")
+#jPT = JPT(theData, 2, 0, noStates)
 #print DependencyMatrix(theData, noVariables, noStates)
-dm =  DependencyMatrix(theData, noVariables, noStates)
-AppendString("results.txt","The dependency matrix for the HepatitisC data set:")
-AppendArray("results.txt",dm)
-dl = DependencyList(dm)
-AppendString("results.txt","The dependency list for the HepatitisC data set:")
-AppendArray("results.txt",dl)
-mst = SpanningTreeAlgorithm(dl,noVariables)
-AppendString("results.txt","Maximally Weighted Spanning Tree for the HepatitisC data set:")
-AppendArray("results.txt",mst)
+#dm =  DependencyMatrix(theData, noVariables, noStates)
+#AppendString("results.txt","The dependency matrix for the HepatitisC data set:")
+#AppendArray("results.txt",dm)
+#dl = DependencyList(dm)
+#AppendString("results.txt","The dependency list for the HepatitisC data set:")
+#AppendArray("results.txt",dl)
+#mst = SpanningTreeAlgorithm(dl,noVariables)
+#AppendString("results.txt","Maximally Weighted Spanning Tree for the HepatitisC data set:")
+#AppendArray("results.txt",mst)
+
+# *********** Coursework 3 *****************
+
+cpt = CPT_2(theData,0,1,2,noStates)
+#AppendArray("results.txt", cpt)
+print MDLAccuracy(theData,[],[])
