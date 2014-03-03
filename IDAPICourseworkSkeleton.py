@@ -3,7 +3,7 @@
 # Coursework in Python 
 from IDAPICourseworkLibrary import *
 from numpy import *
-import math
+from math import *
 #
 # Coursework 1 begins here
 #
@@ -30,9 +30,9 @@ def CPT(theData, varC, varP, noStates):
         parentCount[theData[row][varP]]+=1
     # Now normalise
     for row in range(cPT.shape[0]):
-      for col in range(cPT.shape[1]):
-	  if parentCount[col] != 0:
-            cPT[row][col]/=parentCount[col]
+        for col in range(cPT.shape[1]):
+    	    if parentCount[col] != 0:
+                cPT[row][col]/=parentCount[col]
     return cPT
   
 # Function to calculate the joint probability table of two variables in the data set
@@ -54,7 +54,8 @@ def JPT2CPT(aJPT):
       probVarCol[col] += aJPT[row][col]
   for col in range(aJPT.shape[1]):
     for row in range(aJPT.shape[0]):
-      aJPT[row][col]/=probVarCol[col]
+        if(probVarCol[col] != 0):
+            aJPT[row][col]/=probVarCol[col]
   return aJPT
 
 #
@@ -167,8 +168,7 @@ def CPT_2(theData, child, parent1, parent2, noStates):
     cPT = zeros([noStates[child],noStates[parent1],noStates[parent2]], float ) # 
 # Coursework 3 task 1 should be inserted here
     parentCount = zeros([noStates[parent1],noStates[parent2]], float)
-# Need to calculate the probability of the child event for every combination of the 
-# parents events   
+    # Need to calculate the probability of the child event for every parent combination   
     for row in range(theData.shape[0]):
         cPT[theData[row][child]][theData[row][parent1]][theData[row][parent2]]+=1
         parentCount[theData[row][parent1]][theData[row][parent2]]+=1
@@ -196,9 +196,18 @@ def ExampleBayesianNetwork(theData, noStates):
     return arcList, cptList
 # Coursework 3 task 2 begins here
 
-def HepCBayesianNetwork():
-    arcList = []
-    cptList = []
+def HepCBayesianNetwork(theData, noStates):
+    arcList = [[0],[1],[2,0],[3,4],[4,1],[5,4],[6,1],[7,0,1],[8,7]]
+    cpt0 = Prior(theData,0,noStates)
+    cpt1 = Prior(theData,1,noStates)
+    cpt2 = CPT(theData,2,0,noStates)
+    cpt3 = CPT(theData,3,4,noStates)
+    cpt4 = CPT(theData,4,1,noStates)
+    cpt5 = CPT(theData,5,4,noStates)
+    cpt6 = CPT(theData,6,1,noStates)
+    cpt7 = CPT_2(theData,7,0,1,noStates)
+    cpt8 = CPT(theData,8,7,noStates)
+    cptList = [cpt0,cpt1,cpt2,cpt3,cpt4,cpt5,cpt6,cpt7,cpt8]
     return arcList, cptList
 
 # end of coursework 3 task 2
@@ -207,16 +216,14 @@ def HepCBayesianNetwork():
 def MDLSize(arcList, cptList, noDataPoints, noStates):
     mdlSize = 0.0
 # Coursework 3 task 3 begins here
-
-    #
-    for x in range(len(arcList)):
-        res = 1
-        for y in range(arcList[x]):
-            res *= noStates[arcList[y]]-1
-        mdlSize += res
-
+    for i in range(len(arcList)):
+        if len(arcList[i]) == 1:
+            mdlSize += noStates[i]-1
+        elif len(arcList[i]) == 2:
+            mdlSize += (noStates[i]-1)*(noStates[arcList[i][1]])
+        else:
+            mdlSize += (noStates[i]-1)*(noStates[arcList[i][1]])*(noStates[arcList[i][2]])
     mdlSize *= log2(noDataPoints)/2
-
 # Coursework 3 task 3 ends here 
     return mdlSize 
 #
@@ -224,8 +231,13 @@ def MDLSize(arcList, cptList, noDataPoints, noStates):
 def JointProbability(dataPoint, arcList, cptList):
     jP = 1.0
 # Coursework 3 task 4 begins here
-
-
+    for i in range(len(cptList)):
+        if len(arcList[i]) == 1: 
+            jP *= cptList[i][dataPoint[arcList[i][0]]]
+        elif len(arcList[i]) == 2:
+            jP *= cptList[i][dataPoint[i]][dataPoint[arcList[i][1]]]
+        else:
+            jP *= cptList[i][dataPoint[i]][dataPoint[arcList[i][1]]][dataPoint[arcList[i][2]]]
 # Coursework 3 task 4 ends here 
     return jP
 #
@@ -233,14 +245,47 @@ def JointProbability(dataPoint, arcList, cptList):
 def MDLAccuracy(theData, arcList, cptList):
     mdlAccuracy=0
 # Coursework 3 task 5 begins here
-    # First calculate the likelihood
     for row in range(theData.shape[0]):
-        mdlAccuracy += JointProbability(theData[row],arcList,cptList)
-    # Second, take the logarithm (base 2)
-    if mdlAccuracy != 0;
-        mdlAccuracy = log2(mdlAccuracy)
+        jp = JointProbability(theData[row],arcList,cptList)
+        if jp != 0:
+            mdlAccuracy += log2(jp)    
 # Coursework 3 task 5 ends here 
     return mdlAccuracy
+
+# I assume that graph supplied to this function is a spanning tree
+def BestScoringNetwork(theData, arcList, cptList, noStates):
+    
+    minScore = 0
+    minArcList = []
+    for i in range(len(arcList)):
+        if len(arcList[i]) == 2:
+            tempArcList = list(arcList)
+            tempCptList = list(cptList)
+            tempArcList[i] = [ arcList[i][0] ]
+            tempCptList[i] = Prior(theData,arcList[i][0],noStates)
+            mdlSize = MDLSize(tempArcList, tempCptList, theData.shape[0], noStates)
+            mdlAcc  = MDLAccuracy(theData, tempArcList, tempCptList)
+            score = mdlSize - mdlAcc
+            if minScore == 0 or score < minScore:
+                minScore = score
+                minArcList = tempArcList
+        if len(arcList[i]) == 3:
+            for k in [1,2]:
+            # We should not delete the 0th entry in the sub list
+            # as this would violate the structure of cptList
+                tempArcList = list(arcList)
+                tempCptList = list(cptList)
+                tempArcList[i] = [ arcList[i][0], arcList[i][k] ]
+                tempCptList[i] = CPT(theData,arcList[i][0],arcList[i][k],noStates)
+                mdlSize = MDLSize(tempArcList, tempCptList, theData.shape[0], noStates)
+                mdlAcc  = MDLAccuracy(theData, tempArcList, tempCptList)
+                score = mdlSize - mdlAcc
+                if minScore == 0 or score < minScore:
+                    minScore = score
+                    minArcList = tempArcList
+    
+    return minScore, minArcList
+
 #
 # End of coursework 3
 #
@@ -251,9 +296,12 @@ def Mean(theData):
     noVariables=theData.shape[1] 
     mean = []
     # Coursework 4 task 1 begins here
-
-
-
+    noDataPoints = theData.shape[0]
+    for i in range(noVariables):
+        sum = 0.0
+        for j in range(noDataPoints):
+            sum += theData[j][i]
+        mean.append(sum/noDataPoints)
     # Coursework 4 task 1 ends here
     return array(mean)
 
@@ -263,13 +311,24 @@ def Covariance(theData):
     noVariables=theData.shape[1] 
     covar = zeros((noVariables, noVariables), float)
     # Coursework 4 task 2 begins here
-
-
+    noDataPoints = theData.shape[0]
+    mean = Mean(realData)
+    for i in range(noVariables):
+        for j in range(noVariables):
+            sum = 0
+            for k in range(noDataPoints):
+                sum+= (realData[k][i]-mean[i])*(realData[k][j]-mean[j])
+            covar[i][j] = sum/(noDataPoints - 1)       
     # Coursework 4 task 2 ends here
     return covar
-def CreateEigenfaceFiles(theBasis):
-    adummystatement = 0 #delete this when you do the coursework
+
+def CreateEigenfaceFiles(): #theBasis
     # Coursework 4 task 3 begins here
+    eigFaces = ReadEigenfaceBasis()
+    for i in range(10):
+        filename = "PrincipleComponent" + str(i) + ".jpg"
+        SaveEigenface(eigFaces[i],filename)
+
 
     # Coursework 4 task 3 ends here
 
@@ -354,6 +413,45 @@ theData = array(datain)
 
 # *********** Coursework 3 *****************
 
-cpt = CPT_2(theData,0,1,2,noStates)
-#AppendArray("results.txt", cpt)
-print MDLAccuracy(theData,[],[])
+#AppendString("results.txt","Coursework Three Results by sd3112 \n")
+
+#arcList, cptList = HepCBayesianNetwork(theData,noStates)
+
+#mdlSize = MDLSize(arcList, cptList, noDataPoints, noStates)
+#output = "MDLSize     = " + str(mdlSize)
+#print output
+#AppendString("results.txt", output)
+
+#mdlAccuracy = MDLAccuracy(theData, arcList, cptList)
+#output = "MDLAccuracy = " + str(mdlAccuracy)
+#print output
+#AppendString("results.txt", output)
+
+#mdlScore = mdlSize - mdlAccuracy
+#output = "MDLScore    = " + str(mdlScore) + "\n"
+#print output
+#AppendString("results.txt", output)
+
+#bestScore, bestNet = BestScoringNetwork(theData, arcList, cptList, noStates)
+#output1 = "Best Score  = " + str(bestScore)
+#output2 = "The best score in the case of the Hep C data came from: \n " + str(bestNet)
+#print output1
+#print output2
+#AppendString("results.txt",output1)
+#AppendString("results.txt",output2)
+
+# *********** Coursework 4 *****************
+
+AppendString("results.txt","Coursework Four Results by sd3112 \n")
+#print theData
+#print Mean(theData)
+#print Covariance(theData)
+eig = ReadEigenfaceBasis()
+# 10 * 10304 matrix
+print "ReadEigenfaceBasis() returns an array of size " 
+print eig.shape[0]
+print "rows by "
+print eig.shape[1]
+print "columns"
+CreateEigenfaceFiles()
+#AppendArray("results.txt",eig)
