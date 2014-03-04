@@ -303,7 +303,7 @@ def Mean(theData):
             sum += theData[j][i]
         mean.append(sum/noDataPoints)
     # Coursework 4 task 1 ends here
-    return array(mean)
+    return mean
 
 
 def Covariance(theData):
@@ -322,38 +322,47 @@ def Covariance(theData):
     # Coursework 4 task 2 ends here
     return covar
 
-def CreateEigenfaceFiles(): #theBasis
+def CreateEigenfaceFiles(theBasis): #theBasis
     # Coursework 4 task 3 begins here
-    eigFaces = ReadEigenfaceBasis()
     for i in range(10):
         filename = "PrincipleComponent" + str(i) + ".jpg"
-        SaveEigenface(eigFaces[i],filename)
-
-
+        SaveEigenface(theBasis[i],filename)
     # Coursework 4 task 3 ends here
 
 def ProjectFace(theBasis, theMean, theFaceImage):
     magnitudes = []
     # Coursework 4 task 4 begins here
-
+    image = ReadOneImage(theFaceImage)
+    normalised = array(subtract(image,theMean))
+    magnitudes = normalised.dot(transpose(theBasis))
     # Coursework 4 task 4 ends here
     return array(magnitudes)
 
 def CreatePartialReconstructions(aBasis, aMean, componentMags):
-    adummystatement = 0  #delete this when you do the coursework
     # Coursework 4 task 5 begins here
-
+    imageData = aMean
+    for i in range(10):
+        imageData += dot(componentMags[i],aBasis[i])
+        filename = "PartialReconstruction" + str(i) + ".jpg"
+        SaveEigenface(imageData,filename)
     # Coursework 4 task 5 ends here
 
 def PrincipalComponents(theData):
     orthoPhi = []
-    # Coursework 4 task 3 begins here
+    # Coursework 4 task 6 begins here
     # The first part is almost identical to the above Covariance function, but because the
     # data has so many variables you need to use the Kohonen Lowe method described in lecture 15
     # The output should be a list of the principal components normalised and sorted in descending 
     # order of their eignevalues magnitudes
-
-    
+    mean = Mean(theData)
+    meanCentred = [] 
+    for i in range(theData.shape[0]):
+        meanCentred.append(subtract(theData[i],mean))
+    #print meanCentred
+    klMatrix = dot(meanCentred,transpose(meanCentred))                       
+    #print klMatrix
+    # Now retrieve the normalised the eigenvectors
+    eigValues, orthoPhi = linalg.eig(klMatrix)
     # Coursework 4 task 6 ends here
     return array(orthoPhi)
 
@@ -443,15 +452,17 @@ theData = array(datain)
 # *********** Coursework 4 *****************
 
 AppendString("results.txt","Coursework Four Results by sd3112 \n")
-#print theData
-#print Mean(theData)
-#print Covariance(theData)
-eig = ReadEigenfaceBasis()
-# 10 * 10304 matrix
-print "ReadEigenfaceBasis() returns an array of size " 
-print eig.shape[0]
-print "rows by "
-print eig.shape[1]
-print "columns"
-CreateEigenfaceFiles()
-#AppendArray("results.txt",eig)
+
+basis = ReadEigenfaceBasis()
+CreateEigenfaceFiles(basis)
+mean = ReadOneImage("MeanImage.jpg")
+
+compMags = ProjectFace(basis, mean, "c.pgm")
+
+CreatePartialReconstructions(basis, mean, compMags)
+
+
+imageData = array(ReadImages())
+result = PrincipalComponents(imageData)
+#print result
+#CreateEigenfaceFiles(result)
