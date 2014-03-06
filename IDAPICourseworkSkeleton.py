@@ -303,7 +303,7 @@ def Mean(theData):
             sum += theData[j][i]
         mean.append(sum/noDataPoints)
     # Coursework 4 task 1 ends here
-    return mean
+    return array(mean)
 
 
 def Covariance(theData):
@@ -324,7 +324,7 @@ def Covariance(theData):
 
 def CreateEigenfaceFiles(theBasis): #theBasis
     # Coursework 4 task 3 begins here
-    for i in range(10):
+    for i in range(theBasis.shape[0]):
         filename = "PrincipleComponent" + str(i) + ".jpg"
         SaveEigenface(theBasis[i],filename)
     # Coursework 4 task 3 ends here
@@ -341,7 +341,7 @@ def ProjectFace(theBasis, theMean, theFaceImage):
 def CreatePartialReconstructions(aBasis, aMean, componentMags):
     # Coursework 4 task 5 begins here
     imageData = aMean
-    for i in range(10):
+    for i in range(aBasis.shape[0]):
         imageData += dot(componentMags[i],aBasis[i])
         filename = "PartialReconstruction" + str(i) + ".jpg"
         SaveEigenface(imageData,filename)
@@ -358,13 +358,16 @@ def PrincipalComponents(theData):
     meanCentred = [] 
     for i in range(theData.shape[0]):
         meanCentred.append(subtract(theData[i],mean))
-    #print meanCentred
     klMatrix = dot(meanCentred,transpose(meanCentred))                       
-    #print klMatrix
-    # Now retrieve the normalised the eigenvectors
+    # Now retrieve the normalised eigenvectors
     eigValues, orthoPhi = linalg.eig(klMatrix)
+    idx = eigValues.argsort()
+    #orthPhi = orthoPhi[:,idx]
+    eigFaces = transpose(dot(transpose(meanCentred),orthoPhi))
+    eigFaces = eigFaces[idx,:]
+    print len(eigFaces[0])
     # Coursework 4 task 6 ends here
-    return array(orthoPhi)
+    return array(eigFaces)
 
 #
 # main program part for Coursework 1
@@ -453,16 +456,35 @@ theData = array(datain)
 
 AppendString("results.txt","Coursework Four Results by sd3112 \n")
 
-basis = ReadEigenfaceBasis()
-CreateEigenfaceFiles(basis)
-mean = ReadOneImage("MeanImage.jpg")
+AppendString("results.txt","The mean of the Hepatitis C data is: \n")
+hepMean = Mean(theData)
+AppendArray("results.txt", hepMean)
 
+AppendString("results.txt","The covariance of the Hepatitis C data is: \n")
+hepCovar = Covariance(theData)
+AppendArray("results.txt", hepCovar)
+
+imageData = array(ReadImages())
+cMean = ReadOneImage("MeanImage.jpg")
+mean = Mean(imageData)
+basis = PrincipalComponents(imageData)
 compMags = ProjectFace(basis, mean, "c.pgm")
+
+AppendString("results.txt", "The component magnitudes of c.pgm: \n")
+AppendArray("results.txt", compMags)
+
+eigFaceBasis = ReadEigenfaceBasis()
+cMag = ProjectFace(eigFaceBasis,cMean,"c.pgm")
+
+CreateEigenfaceFiles(basis)
+CreatePartialReconstructions(eigFaceBasis,cMean,cMag)
+
+pcs = PrincipalComponents(imageData)
+
+# Add the principal components of the image data
+CreateEigenfaceFiles(pcs)
 
 CreatePartialReconstructions(basis, mean, compMags)
 
 
-imageData = array(ReadImages())
-result = PrincipalComponents(imageData)
-#print result
-#CreateEigenfaceFiles(result)
+
