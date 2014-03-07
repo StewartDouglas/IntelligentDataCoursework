@@ -300,7 +300,7 @@ def Mean(theData):
     for i in range(noVariables):
         sum = 0.0
         for j in range(noDataPoints):
-            sum += theData[j][i]
+            sum += realData[j][i]
         mean.append(sum/noDataPoints)
     # Coursework 4 task 1 ends here
     return array(mean)
@@ -325,7 +325,7 @@ def Covariance(theData):
 def CreateEigenfaceFiles(theBasis): #theBasis
     # Coursework 4 task 3 begins here
     for i in range(theBasis.shape[0]):
-        filename = "PrincipleComponent" + str(i) + ".jpg"
+        filename = "PrincipleComponent" + str(i+1) + ".jpg"
         SaveEigenface(theBasis[i],filename)
     # Coursework 4 task 3 ends here
 
@@ -343,7 +343,7 @@ def CreatePartialReconstructions(aBasis, aMean, componentMags):
     imageData = aMean
     for i in range(aBasis.shape[0]):
         imageData += dot(componentMags[i],aBasis[i])
-        filename = "PartialReconstruction" + str(i) + ".jpg"
+        filename = "PartialReconstruction" + str(i+1) + ".jpg"
         SaveEigenface(imageData,filename)
     # Coursework 4 task 5 ends here
 
